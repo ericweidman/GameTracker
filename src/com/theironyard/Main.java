@@ -4,7 +4,6 @@ import spark.ModelAndView;
 import spark.Session;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
-
 import java.util.HashMap;
 
 public class Main {
@@ -16,14 +15,13 @@ public class Main {
         Spark.get(
                 "/",
                 ((request, response) -> {
-                    Session session = request.session();
-                    String name = session.attribute("userName");
-                    User user = users.get(name);
+                    User user = getUserFromSession(request.session());
                     HashMap m = new HashMap();
                     if (user == null) {
                         return new ModelAndView(m, "login.html");
                     } else {
-                        return new ModelAndView(m, "home.html");
+                        m.put("games",user.games);
+                        return new ModelAndView(user, "home.html");
                     }
                 }),
                 new MustacheTemplateEngine()
@@ -45,14 +43,39 @@ public class Main {
                 })
         );
         Spark.post(
-                "create/game",
+                "/create-game",
                 ((request, response) -> {
+                    User user = getUserFromSession(request.session());
+                    if(user == null){
+                        //throw new Exception("User is not logged in");
+                        Spark.halt(403);
+                    }
+
                     String gameName = request.queryParams("gameName");
                     String gameGenre = request.queryParams("gameGenre");
                     String gamePlatform = request.queryParams("gamePlatform");
                     int gameYear = Integer.valueOf(request.queryParams("gameYear"));
+                    Game game = new Game(gameName, gameGenre, gamePlatform, gameYear);
+
+                    user.games.add(game);
+                    response.redirect("/");
                     return "";
                 })
         );
+        Spark.post(
+                "/logout",
+                (((request, response) -> {
+                  Session session = request.session();
+                    session.invalidate();
+                    response.redirect("/");
+                    return "";
+                })
+        ));
     }
+
+    static User getUserFromSession(Session session){
+        String name = session.attribute("userName");
+        return users.get(name);
+    }
+
 }
