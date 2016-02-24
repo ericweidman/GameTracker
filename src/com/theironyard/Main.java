@@ -55,6 +55,9 @@ public class Main {
                     String gameGenre = request.queryParams("gameGenre");
                     String gamePlatform = request.queryParams("gamePlatform");
                     int gameYear = Integer.valueOf(request.queryParams("gameYear"));
+                    if (gameGenre == null || gameName == null || gamePlatform == null){
+                        throw new Exception("Didn't receive all query parameters.");
+                    }
                     Game game = new Game(gameName, gameGenre, gamePlatform, gameYear);
 
                     user.games.add(game);
@@ -64,18 +67,17 @@ public class Main {
         );
         Spark.post(
                 "/logout",
-                (((request, response) -> {
-                  Session session = request.session();
+                ((request, response) -> {
+                    Session session = request.session();
                     session.invalidate();
                     response.redirect("/");
                     return "";
                 })
-        ));
+        );
     }
 
     static User getUserFromSession(Session session){
         String name = session.attribute("userName");
         return users.get(name);
     }
-
 }
