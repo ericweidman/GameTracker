@@ -5,10 +5,8 @@ import spark.Session;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Main {
@@ -20,8 +18,8 @@ public class Main {
         Statement stmt = conn.createStatement();
 
         Spark.externalStaticFileLocation("public");
-        stmt.execute("CREATE TABLE IF NOT EXISTS games (id IDENTITY, name VARCHAR, genre VARCHAR, platform VARCHAR, year VARCHAR)");
-
+        stmt.execute("CREATE TABLE IF NOT EXISTS games (id IDENTITY, gameName VARCHAR, gameGenre VARCHAR, " +
+                "gamePlatform VARCHAR, gameYear INT)");
 
 
         Spark.init();
@@ -33,7 +31,10 @@ public class Main {
                     if (user == null) {
                         return new ModelAndView(m, "login.html");
                     } else {
-                        m.put("games",user.games);
+                        selectGames(stmt, );
+
+
+
                         return new ModelAndView(user, "home.html");
                     }
                 }),
@@ -59,21 +60,20 @@ public class Main {
                 "/create-game",
                 ((request, response) -> {
                     User user = getUserFromSession(request.session());
-                    if(user == null){
+                    if (user == null) {
                         //throw new Exception("User is not logged in");
                         Spark.halt(403);
                     }
-
                     String gameName = request.queryParams("gameName");
                     String gameGenre = request.queryParams("gameGenre");
                     String gamePlatform = request.queryParams("gamePlatform");
                     int gameYear = Integer.valueOf(request.queryParams("gameYear"));
-                    if (gameGenre == null || gameName == null || gamePlatform == null){
+                    if (gameGenre == null || gameName == null || gamePlatform == null) {
                         throw new Exception("Didn't receive all query parameters.");
                     }
-                    Game game = new Game(gameName, gameGenre, gamePlatform, gameYear);
+                    insertGame(conn, gameName, gameGenre, gamePlatform, gameYear);
 
-                    user.games.add(game);
+
                     response.redirect("/");
                     return "";
                 })
@@ -87,18 +87,52 @@ public class Main {
                     return "";
                 })
         );
+        Spark.post(
+                "/delete-game",
+                ((request, response) -> {
+                int id = Integer.valueOf(request.queryParams("gameDelete"));
+                deleteGame(conn, id);
+                    response.redirect("/");
+                    return"";
 
+                })
+        );
+        //conn.close();
     }
 
-    static User getUserFromSession(Session session){
+    static User getUserFromSession(Session session) {
         String name = session.attribute("userName");
         return users.get(name);
     }
 
-   // static Game insertGame(){
-     //   String gameName = request.queryParams("gameName");
+    static void insertGame(Connection conn, String gameName, String gameGenre, String gamePlatform, int gameYear) throws SQLException {
+        PreparedStatement stmt2 = conn.prepareStatement("INSERT INTO games VALUES (NULL, ?, ?, ?, ?)");
+        stmt2.setString(1, gameName);
+        stmt2.setString(2, gameGenre);
+        stmt2.setString(3, gamePlatform);
+        stmt2.setInt(4, gameYear);
+        stmt2.execute();
 
-   // }
+    }
+    static void deleteGame(Connection conn, int id) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("DELETE FROM games WHERE id = ?");
+        stmt.setInt(1, id);
+        stmt.execute();
+    }
+     static void selectGames(Statement stmt, ArrayList<Game> games) throws SQLException {
+
+         ResultSet results = stmt.executeQuery("SELECT * FROM games");
+        while(results.next()){
+            String gameName = results.getString("gameName");
+            String gameGenre =  results.getString("gameGenre");
+            String gamePlatform = results.getString("gamePlatform");
+            int gameYear = results.getInt("gameYear");
+            Game game = new Game(gameName, gameGenre, gamePlatform, gameYear);
+            games.add(game);
+
+        }
+
+    }
 }
 
 

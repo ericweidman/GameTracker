@@ -30,5 +30,10 @@
     <li>{{name}} - {{genre}} - {{platform}} - {{releaseYear}}</li>
     {{/games}}
 </ol>
+<form action="/delete-game" method="post">
+    <input type="text" placeholder="Game to delete" name="gameDelete"/>
+    <button type="submit">Delete</button>
+</form>
+
 </body>
 </html>
