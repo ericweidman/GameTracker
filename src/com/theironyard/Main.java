@@ -4,13 +4,25 @@ import spark.ModelAndView;
 import spark.Session;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 
 public class Main {
     static HashMap<String, User> users = new HashMap<>();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
+        Connection conn = DriverManager.getConnection("jdbc:h2:./main");
+
+        Statement stmt = conn.createStatement();
+
         Spark.externalStaticFileLocation("public");
+        stmt.execute("CREATE TABLE IF NOT EXISTS games (id IDENTITY, name VARCHAR, genre VARCHAR, platform VARCHAR, year VARCHAR)");
+
+
 
         Spark.init();
         Spark.get(
@@ -82,6 +94,11 @@ public class Main {
         String name = session.attribute("userName");
         return users.get(name);
     }
+
+   // static Game insertGame(){
+     //   String gameName = request.queryParams("gameName");
+
+   // }
 }
 
 
