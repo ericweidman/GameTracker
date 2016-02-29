@@ -14,5 +14,10 @@ public class Game {
         this.genre = genre;
         this.platform = platform;
         this.releaseYear = releaseYear;
+
+
+    }
+
+    public Game() {
     }
 }

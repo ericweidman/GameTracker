@@ -31,11 +31,11 @@ public class Main {
                     if (user == null) {
                         return new ModelAndView(m, "login.html");
                     } else {
-                        selectGames(stmt, );
+                        //selectGames(conn);
+                       // ArrayList<Game> games = selectGames(conn);
+                        m.put("games", selectGames(conn));
 
-
-
-                        return new ModelAndView(user, "home.html");
+                        return new ModelAndView(m, "home.html");
                     }
                 }),
                 new MustacheTemplateEngine()
@@ -64,14 +64,15 @@ public class Main {
                         //throw new Exception("User is not logged in");
                         Spark.halt(403);
                     }
-                    String gameName = request.queryParams("gameName");
-                    String gameGenre = request.queryParams("gameGenre");
-                    String gamePlatform = request.queryParams("gamePlatform");
-                    int gameYear = Integer.valueOf(request.queryParams("gameYear"));
-                    if (gameGenre == null || gameName == null || gamePlatform == null) {
+                    Game game = new Game();
+                    game.name = request.queryParams("gameName");
+                    game.genre = request.queryParams("gameGenre");
+                    game.platform = request.queryParams("gamePlatform");
+                    game.releaseYear = Integer.valueOf(request.queryParams("gameYear"));
+                    if (game.name == null || game.genre == null || game.platform == null) {
                         throw new Exception("Didn't receive all query parameters.");
                     }
-                    insertGame(conn, gameName, gameGenre, gamePlatform, gameYear);
+                    insertGame(conn, game.name, game.genre, game.platform, game.releaseYear);
 
 
                     response.redirect("/");
@@ -90,10 +91,10 @@ public class Main {
         Spark.post(
                 "/delete-game",
                 ((request, response) -> {
-                int id = Integer.valueOf(request.queryParams("gameDelete"));
-                deleteGame(conn, id);
+                    int id = Integer.valueOf(request.queryParams("gameDelete"));
+                    deleteGame(conn, id);
                     response.redirect("/");
-                    return"";
+                    return "";
 
                 })
         );
@@ -114,27 +115,28 @@ public class Main {
         stmt2.execute();
 
     }
+
     static void deleteGame(Connection conn, int id) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement("DELETE FROM games WHERE id = ?");
         stmt.setInt(1, id);
         stmt.execute();
     }
-     static void selectGames(Statement stmt, ArrayList<Game> games) throws SQLException {
 
-         ResultSet results = stmt.executeQuery("SELECT * FROM games");
-        while(results.next()){
+    static ArrayList<Game> selectGames(Connection conn) throws SQLException {
+        ArrayList<Game> games = new ArrayList<>();
+        Statement stmt = conn.createStatement();
+        ResultSet results = stmt.executeQuery("SELECT * FROM games");
+        while (results.next()) {
             String gameName = results.getString("gameName");
-            String gameGenre =  results.getString("gameGenre");
+            String gameGenre = results.getString("gameGenre");
             String gamePlatform = results.getString("gamePlatform");
             int gameYear = results.getInt("gameYear");
             Game game = new Game(gameName, gameGenre, gamePlatform, gameYear);
             games.add(game);
-
         }
-
+        return games;
     }
 }
-
 
 //        Create the Connection and execute a query to create a games
 //        table that stores the game name and other attributes.
