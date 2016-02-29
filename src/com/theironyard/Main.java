@@ -91,7 +91,8 @@ public class Main {
         Spark.post(
                 "/delete-game",
                 ((request, response) -> {
-                    int id = Integer.valueOf(request.queryParams("gameDelete"));
+                    String string = request.queryParams("gameDelete");
+                    int id = Integer.valueOf(string);
                     deleteGame(conn, id);
                     response.redirect("/");
                     return "";
