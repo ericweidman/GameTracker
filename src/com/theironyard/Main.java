@@ -99,6 +99,19 @@ public class Main {
 
                 })
         );
+        Spark.post(
+                "/edit-game",
+                ((request, response) -> {
+
+
+
+                  response.redirect("/");
+                    return "";
+                })
+        );
+
+
+
         //conn.close();
     }
 
@@ -139,10 +152,6 @@ public class Main {
         return games;
     }
 }
-
-
-//        Write a static method deleteGame and run it in the
-//        /delete-game route. It should remove the correct row using id.
 
 //        Add a form to edit the game name and other attributes,
 //        and create an /edit-game route. Write a static method updateGame
