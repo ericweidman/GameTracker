@@ -29,7 +29,7 @@
     {{#games}}
     <li>{{name}} - {{genre}} - {{platform}} - {{releaseYear}}</li>
     <form action="/delete-game" method="post">
-        <input hidden name="id" value="{{id}}" name="gameDelete">
+        <input hidden name="gameId" value="{{gameId}}" name="gameId">
         <button type="submit">Delete</button>
     </form>
     {{/games}}
